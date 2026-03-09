@@ -109,29 +109,76 @@ Additional features:
 
 ### Create and Activate Virtual Environment
 
-```bash
+
 python -m venv AI_venv
-Windows
+
+
+### Windows
+
+
 AI_venv\Scripts\activate
-Linux / Mac
+
+
+### Linux / Mac
+
+
 source AI_venv/bin/activate
-Install Dependencies
+
+
+---
+
+### Install Dependencies
+
+
 pip install -r requirements.txt
-Create MySQL Database
+
+
+---
+
+### Create MySQL Database
+
+
 CREATE DATABASE ai_manufacturing_db
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
-Run Migrations
-python manage.py makemigrations
-python manage.py migrate
-Train AI Models
-Train Predictive Maintenance Model (Random Forest)
-python ai_models/train_model.py
-Train Supply Chain Risk Model (Gradient Boosting)
-python ai_models/train_supply_model.py
-Seed Sample Data
-python seed_data.py
-Start the Server
-python manage.py runserver
+
 
 ---
+
+### Run Migrations
+
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+---
+
+### Train AI Models
+
+1. **Train Predictive Maintenance Model (Random Forest)**
+
+
+python ai_models/train_model.py
+
+
+2. **Train Supply Chain Risk Model (Gradient Boosting)**
+
+
+python ai_models/train_supply_model.py
+
+
+---
+
+### Seed Sample Data
+
+
+python seed_data.py
+
+
+---
+
+### Start the Server
+
+
+python manage.py runserver
