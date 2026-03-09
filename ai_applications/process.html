@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Process Optimization{% endblock %}
+{% block page_title %}Process Optimization{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;"><i class="bi bi-gear"></i></div>
+                <div><p class="mb-0 text-muted small">Total Processes</p><h4 class="mb-0 fw-700">{{ total_processes }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;"><i class="bi bi-graph-up-arrow"></i></div>
+                <div><p class="mb-0 text-muted small">Avg Improvement</p><h4 class="mb-0 fw-700 text-success">{{ avg_improvement }}%</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;"><i class="bi bi-trophy"></i></div>
+                <div>
+                    <p class="mb-0 text-muted small">Best Process</p>
+                    <h6 class="mb-0 fw-700 text-warning" style="font-size:0.85rem;">
+                        {% if best_process %}{{ best_process.process_name|truncatechars:18 }}{% else %}—{% endif %}
+                    </h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Form -->
+    <div class="col-lg-4">
+        <div class="card stat-card border-0 p-4">
+            <h6 class="fw-600 mb-1"><i class="bi bi-robot text-primary me-2"></i>AI Optimization Analysis</h6>
+            <p class="text-muted small mb-4">Enter process data — AI auto-generates recommendations.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="mb-3">
+                    <label class="form-label">Process Name</label>
+                    <input type="text" name="process_name" class="form-control" placeholder="e.g. Welding Line A" required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Efficiency Before (%)</label>
+                    <input type="number" step="0.1" min="1" max="100" name="efficiency_before" class="form-control" placeholder="e.g. 68.5" required style="border-radius:10px;">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Efficiency After (%)</label>
+                    <input type="number" step="0.1" min="1" max="100" name="efficiency_after" class="form-control" placeholder="e.g. 84.0" required style="border-radius:10px;">
+                </div>
+                <div class="p-3 rounded-3 mb-4" style="background:rgba(99,102,241,0.06); border:1px dashed #6366f1;">
+                    <small class="text-primary fw-600">
+                        <i class="bi bi-robot me-1"></i>AI Auto-Generate
+                    </small>
+                    <p class="text-muted small mb-0 mt-1">
+                        AI will automatically generate a detailed recommendation based on your process name and efficiency values.
+                    </p>
+                </div>
+                <button type="submit" class="btn w-100 btn-primary-custom fw-600 py-2">
+                    <i class="bi bi-gear-wide-connected me-2"></i>Analyze & Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="px-4 py-3 border-bottom">
+                <h6 class="fw-600 mb-0"><i class="bi bi-gear-wide-connected text-primary me-2"></i>Process Records</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Process</th><th>Before</th><th>After</th><th>Gain</th><th>AI Recommendation</th><th>Date</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for p in processes %}
+                        <tr>
+                            <td><strong>{{ p.process_name }}</strong></td>
+                            <td>{{ p.efficiency_before }}%</td>
+                            <td>{{ p.efficiency_after }}%</td>
+                            <td>
+                                <span class="badge {% if p.improvement_percent >= 15 %}bg-success{% elif p.improvement_percent >= 5 %}bg-warning{% else %}bg-danger{% endif %} bg-opacity-10 {% if p.improvement_percent >= 15 %}text-success{% elif p.improvement_percent >= 5 %}text-warning{% else %}text-danger{% endif %} fw-600">
+                                    {% if p.improvement_percent >= 0 %}+{% endif %}{{ p.improvement_percent }}%
+                                </span>
+                            </td>
+                            <td class="text-muted small" style="max-width:220px; white-space:normal; font-size:0.78rem;">
+                                <span title="{{ p.ai_recommendation }}">{{ p.ai_recommendation|truncatechars:100 }}</span>
+                            </td>
+                            <td class="text-muted small">{{ p.applied_at|date:"d M Y" }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete?')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="pk" value="{{ p.pk }}">
+                                    <button class="btn btn-sm btn-outline-danger" style="border-radius:7px;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-gear fs-2 d-block mb-2 opacity-25"></i>
+                                No processes yet. Add one above!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

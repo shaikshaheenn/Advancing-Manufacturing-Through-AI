@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}System Monitoring{% endblock %}
+{% block page_title %}System Monitoring{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    {% for label, value, color, icon in monitoring_stats %}
+    {% endfor %}
+    <div class="col-md-3"><div class="card stat-card border-0 p-3 text-center">
+        <i class="bi bi-people fs-3 text-primary mb-2"></i>
+        <h4 class="fw-700 mb-0">{{ total_users }}</h4>
+        <p class="text-muted small mb-0">Total Users</p>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card border-0 p-3 text-center">
+        <i class="bi bi-cpu fs-3 text-warning mb-2"></i>
+        <h4 class="fw-700 mb-0">{{ total_maintenance }}</h4>
+        <p class="text-muted small mb-0">Maintenance Records</p>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card border-0 p-3 text-center">
+        <i class="bi bi-shield-check fs-3 text-success mb-2"></i>
+        <h4 class="fw-700 mb-0">{{ total_quality }}</h4>
+        <p class="text-muted small mb-0">Quality Records</p>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card border-0 p-3 text-center">
+        <i class="bi bi-file-earmark-bar-graph fs-3 text-info mb-2"></i>
+        <h4 class="fw-700 mb-0">{{ total_reports }}</h4>
+        <p class="text-muted small mb-0">Reports</p>
+    </div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="table-card">
+            <div class="px-4 py-3 border-bottom">
+                <h6 class="fw-600 mb-0"><i class="bi bi-activity text-primary me-2"></i>Module Health Status</h6>
+            </div>
+            <table class="table mb-0">
+                <thead><tr><th>Module</th><th>Records</th><th>Status</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><i class="bi bi-tools me-2 text-muted"></i>Predictive Maintenance</td>
+                        <td><strong>{{ total_maintenance }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-shield-check me-2 text-muted"></i>Quality Control</td>
+                        <td><strong>{{ total_quality }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-gear me-2 text-muted"></i>Process Optimization</td>
+                        <td><strong>{{ total_process }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-truck me-2 text-muted"></i>Supply Chain</td>
+                        <td><strong>{{ total_supply }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-layers me-2 text-muted"></i>Technology Modules</td>
+                        <td><strong>{{ total_techs }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-file-bar-graph me-2 text-muted"></i>Reports</td>
+                        <td><strong>{{ total_reports }}</strong></td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success badge-status">Active</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card stat-card border-0 p-4 h-100">
+            <h6 class="fw-600 mb-4"><i class="bi bi-server text-primary me-2"></i>System Info</h6>
+            <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Database</span>
+                    <span class="text-success fw-600 small">✓ {{ db_status }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Server Time</span>
+                    <span class="fw-500 small">{{ server_time|date:"d M Y, H:i" }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Python</span>
+                    <span class="fw-500 small">3.11.9</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Django</span>
+                    <span class="fw-500 small">4.2.16</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">ML Model</span>
+                    <span class="text-success fw-600 small">✓ Loaded</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted small">Session Auth</span>
+                    <span class="text-success fw-600 small">✓ SHA-256</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

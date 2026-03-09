@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Technology Modules{% endblock %}
+{% block page_title %}Technology Modules{% endblock %}
+
+{% block content %}
+<!-- Filter Tabs -->
+<div class="mb-4">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'technologies:home' %}" class="btn {% if not tech_type %}btn-primary-custom{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px; font-size:0.85rem;">All</a>
+        <a href="?type=xai" class="btn {% if tech_type == 'xai' %}btn-primary-custom{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px; font-size:0.85rem;">Explainable AI</a>
+        <a href="?type=iot" class="btn {% if tech_type == 'iot' %}btn-primary-custom{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px; font-size:0.85rem;">IoT Integration</a>
+        <a href="?type=edge" class="btn {% if tech_type == 'edge' %}btn-primary-custom{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px; font-size:0.85rem;">Edge Computing</a>
+        <a href="?type=hrc" class="btn {% if tech_type == 'hrc' %}btn-primary-custom{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px; font-size:0.85rem;">Human-Robot</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for tech in techs %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card stat-card border-0 p-4 h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon" style="
+                    {% if tech.tech_type == 'xai' %}background:rgba(99,102,241,0.1); color:#6366f1;
+                    {% elif tech.tech_type == 'iot' %}background:rgba(16,185,129,0.1); color:#10b981;
+                    {% elif tech.tech_type == 'edge' %}background:rgba(245,158,11,0.1); color:#f59e0b;
+                    {% else %}background:rgba(239,68,68,0.1); color:#ef4444;{% endif %}
+                    width:48px; height:48px; min-width:48px;">
+                    {% if tech.tech_type == 'xai' %}<i class="bi bi-diagram-3"></i>
+                    {% elif tech.tech_type == 'iot' %}<i class="bi bi-wifi"></i>
+                    {% elif tech.tech_type == 'edge' %}<i class="bi bi-hdd-network"></i>
+                    {% else %}<i class="bi bi-robot"></i>{% endif %}
+                </div>
+                <div>
+                    <h6 class="fw-700 mb-0" style="color:#1e293b;">{{ tech.title }}</h6>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size:0.68rem;">{{ tech.get_tech_type_display }}</span>
+                </div>
+            </div>
+            <p class="text-muted small mb-3">{{ tech.description }}</p>
+            <div class="mb-2">
+                <p class="small fw-600 mb-1" style="color:#1e293b;">Benefits:</p>
+                <p class="text-muted small mb-0">{{ tech.benefits }}</p>
+            </div>
+            <a href="{% url 'technologies:detail' tech.pk %}" class="btn btn-sm btn-outline-primary mt-3 w-100" style="border-radius:8px;">
+                View Details <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-layers fs-1 text-muted"></i>
+        <p class="text-muted mt-3">No technology modules available yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Supply Chain{% endblock %}
+{% block page_title %}Supply Chain Insights{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-exclamation-octagon"></i></div>
+                <div><p class="mb-0 text-muted small">High Risk</p><h4 class="mb-0 fw-700 text-danger">{{ high_risk }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;"><i class="bi bi-dash-circle"></i></div>
+                <div><p class="mb-0 text-muted small">Medium Risk</p><h4 class="mb-0 fw-700 text-warning">{{ medium_risk }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;"><i class="bi bi-check-circle"></i></div>
+                <div><p class="mb-0 text-muted small">Low Risk</p><h4 class="mb-0 fw-700 text-success">{{ low_risk }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;"><i class="bi bi-robot"></i></div>
+                <div><p class="mb-0 text-muted small">AI Predicted</p><h4 class="mb-0 fw-700 text-primary">{{ ai_auto }}</h4></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Form -->
+    <div class="col-lg-4">
+        <div class="card stat-card border-0 p-4">
+            <h6 class="fw-600 mb-1"><i class="bi bi-robot text-primary me-2"></i>AI Risk Assessment</h6>
+            <p class="text-muted small mb-4">Enter supplier details — AI auto-predicts risk level and generates insights.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="mb-3">
+                    <label class="form-label">Supplier Name</label>
+                    <input type="text" name="supplier_name" class="form-control" placeholder="e.g. TechParts Ltd." required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Component</label>
+                    <input type="text" name="component" class="form-control" placeholder="e.g. Hydraulic Pump" required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Delivery Days</label>
+                    <input type="number" name="delivery_days" class="form-control" placeholder="e.g. 14" required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price Volatility <small class="text-muted">(0.0–1.0)</small></label>
+                    <input type="number" step="0.01" min="0" max="1" name="price_volatility" class="form-control" placeholder="e.g. 0.45" value="0.5" style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Past Delays <small class="text-muted">(count)</small></label>
+                    <input type="number" min="0" name="past_delays" class="form-control" placeholder="e.g. 2" value="0" style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Distance (km)</label>
+                    <input type="number" name="distance_km" class="form-control" placeholder="e.g. 1200" value="500" style="border-radius:10px;">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Defect Rate <small class="text-muted">(0.0–1.0)</small></label>
+                    <input type="number" step="0.001" min="0" max="1" name="defect_rate" class="form-control" placeholder="e.g. 0.02" value="0.02" style="border-radius:10px;">
+                </div>
+                <button type="submit" class="btn w-100 btn-primary-custom fw-600 py-2">
+                    <i class="bi bi-robot me-2"></i>AI Assess & Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="px-4 py-3 border-bottom">
+                <h6 class="fw-600 mb-0"><i class="bi bi-truck text-primary me-2"></i>All Suppliers</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Supplier</th><th>Component</th><th>Days</th><th>Risk</th><th>Source</th><th>AI Insight</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td><strong>{{ item.supplier_name }}</strong></td>
+                            <td>{{ item.component }}</td>
+                            <td>{{ item.delivery_days }}</td>
+                            <td>
+                                <span class="badge {% if item.risk_level == 'high' %}bg-danger bg-opacity-10 text-danger{% elif item.risk_level == 'medium' %}bg-warning bg-opacity-10 text-warning{% else %}bg-success bg-opacity-10 text-success{% endif %} badge-status">
+                                    {{ item.risk_level|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if item.ai_predicted %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary badge-status">
+                                    <i class="bi bi-robot me-1"></i>AI
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary badge-status">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small" style="max-width:200px; white-space:normal;">
+                                {{ item.ai_insight|truncatechars:90 }}
+                            </td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this supplier?')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="pk" value="{{ item.pk }}">
+                                    <button class="btn btn-sm btn-outline-danger" style="border-radius:7px;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-truck fs-2 d-block mb-2 opacity-25"></i>
+                                No suppliers yet. Add one and let AI assess the risk!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

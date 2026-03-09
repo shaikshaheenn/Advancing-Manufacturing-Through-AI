@@ -1,0 +1,12 @@
+django==4.2.16
+mysqlclient
+pillow
+python-decouple
+scikit-learn
+pandas
+numpy
+joblib
+torch 
+torchvision 
+pillow
+google-genai

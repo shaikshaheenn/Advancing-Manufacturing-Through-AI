@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}Quality Control{% endblock %}
+{% block page_title %}Quality Control{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;"><i class="bi bi-exclamation-circle"></i></div>
+                <div><p class="mb-0 text-muted small">Open Issues</p><h4 class="mb-0 fw-700">{{ open_issues }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;"><i class="bi bi-check-circle"></i></div>
+                <div><p class="mb-0 text-muted small">Resolved</p><h4 class="mb-0 fw-700 text-success">{{ resolved_issues }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-shield-x"></i></div>
+                <div><p class="mb-0 text-muted small">High Severity</p><h4 class="mb-0 fw-700 text-danger">{{ high_severity }}</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-0 p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;"><i class="bi bi-robot"></i></div>
+                <div><p class="mb-0 text-muted small">AI Detected</p><h4 class="mb-0 fw-700 text-primary">{{ ai_detected }}</h4></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Form -->
+    <div class="col-lg-4">
+        <div class="card stat-card border-0 p-4">
+            <h6 class="fw-600 mb-1"><i class="bi bi-shield-check text-success me-2"></i>Report Quality Issue</h6>
+            <p class="text-muted small mb-4">Upload an image for AI defect detection, or enter manually.</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="mb-3">
+                    <label class="form-label">Product ID</label>
+                    <input type="text" name="product_id" class="form-control" placeholder="e.g. P-2024-001" required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Defect Type</label>
+                    <input type="text" name="defect_type" class="form-control" placeholder="e.g. Surface Crack" required style="border-radius:10px;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        Upload Image
+                        <span class="badge bg-primary bg-opacity-10 text-primary ms-1" style="font-size:0.65rem;">
+                            <i class="bi bi-robot me-1"></i>AI Detection
+                        </span>
+                    </label>
+                    <input type="file" name="image" accept="image/*" class="form-control" style="border-radius:10px;" id="imageInput">
+                    <small class="text-muted">If image is uploaded, AI auto-detects severity</small>
+                </div>
+                <div class="mb-4" id="manualSeverityDiv">
+                    <label class="form-label">Severity <small class="text-muted">(used if no image)</small></label>
+                    <select name="severity" class="form-select" style="border-radius:10px;">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn w-100 btn-primary-custom fw-600 py-2">
+                    <i class="bi bi-plus-circle me-2"></i>Add Issue
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="px-4 py-3 border-bottom">
+                <h6 class="fw-600 mb-0"><i class="bi bi-list-check text-primary me-2"></i>All Quality Issues</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Product</th><th>Defect</th><th>Severity</th><th>Source</th><th>Confidence</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td><strong>{{ issue.product_id }}</strong></td>
+                            <td>{{ issue.defect_type }}</td>
+                            <td>
+                                <span class="badge {% if issue.severity == 'high' %}bg-danger bg-opacity-10 text-danger{% elif issue.severity == 'medium' %}bg-warning bg-opacity-10 text-warning{% else %}bg-info bg-opacity-10 text-info{% endif %} badge-status">
+                                    {{ issue.severity|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if issue.ai_detected %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary badge-status">
+                                    <i class="bi bi-robot me-1"></i>AI
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary badge-status">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if issue.ai_detected %}
+                                <small class="fw-600 text-primary">{{ issue.ai_confidence }}%</small>
+                                {% else %}
+                                <small class="text-muted">—</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ issue.detected_at|date:"d M Y" }}</td>
+                            <td>
+                                {% if issue.resolved %}
+                                <span class="badge bg-success bg-opacity-10 text-success badge-status">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning badge-status">Open</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    {% if not issue.resolved %}
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="resolve">
+                                        <input type="hidden" name="pk" value="{{ issue.pk }}">
+                                        <button class="btn btn-sm btn-outline-success" style="border-radius:7px;" title="Resolve">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" class="d-inline" onsubmit="return confirm('Delete?')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="pk" value="{{ issue.pk }}">
+                                        <button class="btn btn-sm btn-outline-danger" style="border-radius:7px;" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="bi bi-shield-check fs-2 d-block mb-2 opacity-25"></i>
+                                No issues recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show/hide manual severity based on image upload
+const imageInput = document.getElementById('imageInput');
+const manualDiv  = document.getElementById('manualSeverityDiv');
+if (imageInput) {
+    imageInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            manualDiv.style.opacity = '0.4';
+            manualDiv.querySelector('select').disabled = true;
+            manualDiv.querySelector('label').innerHTML =
+                'Severity <small class="text-success">← AI will auto-detect from image</small>';
+        } else {
+            manualDiv.style.opacity = '1';
+            manualDiv.querySelector('select').disabled = false;
+        }
+    });
+}
+</script>
+{% endblock %}

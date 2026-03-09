@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% block title %}Content Management{% endblock %}
+{% block page_title %}Content Management{% endblock %}
+
+{% block content %}
+<ul class="nav nav-pills mb-4 gap-2" id="contentTabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="pill" href="#challenges-tab">
+            <i class="bi bi-exclamation-triangle me-1"></i>Challenges ({{ challenges|length }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#recs-tab">
+            <i class="bi bi-lightbulb me-1"></i>Recommendations ({{ recommendations|length }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#techs-tab">
+            <i class="bi bi-layers me-1"></i>Technologies ({{ techs|length }})
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- ═══════════════════════════ CHALLENGES TAB ═══════════════════════════ -->
+    <div class="tab-pane fade show active" id="challenges-tab">
+        <div class="row g-4">
+
+            <!-- Add Challenge Form -->
+            <div class="col-lg-4">
+                <div class="card stat-card border-0 p-4">
+                    <h6 class="fw-600 mb-4">
+                        <i class="bi bi-plus-circle text-warning me-2"></i>Add Challenge
+                    </h6>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_challenge">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" class="form-control"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Industry Area</label>
+                            <input type="text" name="industry_area" class="form-control"
+                                   placeholder="e.g. Data Management"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Severity</label>
+                            <select name="severity" class="form-select" style="border-radius:10px;">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">AI Solution Approach</label>
+                            <textarea name="ai_solution" class="form-control" rows="3"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <!-- Gemini Auto-Analyze Toggle -->
+                        <div class="mb-4 p-3 rounded-3"
+                             style="background:rgba(99,102,241,0.06);
+                                    border:1px dashed rgba(99,102,241,0.3);">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="gemini_analyze" id="geminiAnalyze" checked>
+                                <label class="form-check-label fw-500"
+                                       style="color:#4f46e5; font-size:0.85rem;"
+                                       for="geminiAnalyze">
+                                    <i class="bi bi-stars me-1"></i>
+                                    Auto-analyze with Gemini AI
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-1 ms-4">
+                                Gemini will generate a deep analysis on save
+                            </small>
+                        </div>
+                        <button type="submit" class="btn w-100 btn-primary-custom fw-600">
+                            Add Challenge
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Challenges Table -->
+            <div class="col-lg-8">
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th><th>Area</th><th>Severity</th>
+                                    <th>AI Status</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in challenges %}
+                                <tr>
+                                    <td><strong>{{ c.title }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-warning bg-opacity-10 text-warning">
+                                            {{ c.industry_area }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-status
+                                            {% if c.severity == 'high' %}bg-danger bg-opacity-10 text-danger
+                                            {% elif c.severity == 'medium' %}bg-warning bg-opacity-10 text-warning
+                                            {% else %}bg-success bg-opacity-10 text-success{% endif %}">
+                                            {{ c.severity|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if c.ai_analysis %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary badge-status">
+                                            <i class="bi bi-stars me-1"></i>Analyzed
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary badge-status">
+                                            Not Analyzed
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <!-- Gemini Analyze -->
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="analyze_challenge">
+                                                <input type="hidden" name="pk" value="{{ c.pk }}">
+                                                <button class="btn btn-sm"
+                                                        style="border-radius:7px;
+                                                               background:rgba(99,102,241,0.1);
+                                                               color:#6366f1; border:none;"
+                                                        title="Analyze with Gemini">
+                                                    <i class="bi bi-stars"></i>
+                                                </button>
+                                            </form>
+                                            <!-- Delete -->
+                                            <form method="post" class="d-inline"
+                                                  onsubmit="return confirm('Delete?')">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_challenge">
+                                                <input type="hidden" name="pk" value="{{ c.pk }}">
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        style="border-radius:7px;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        No challenges added yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════ RECOMMENDATIONS TAB ═══════════════════════════ -->
+    <div class="tab-pane fade" id="recs-tab">
+        <div class="row g-4">
+
+            <!-- Two sub-forms side by side -->
+            <div class="col-lg-5">
+                <!-- Manual Add -->
+                <div class="card stat-card border-0 p-4 mb-4">
+                    <h6 class="fw-600 mb-4">
+                        <i class="bi bi-pencil-square text-muted me-2"></i>Add Manually
+                    </h6>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_recommendation">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" class="form-control"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <input type="text" name="category" class="form-control"
+                                   placeholder="e.g. Strategy"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select name="priority" class="form-select" style="border-radius:10px;">
+                                <option value="high">High</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="4"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <button type="submit" class="btn w-100 btn-primary-custom fw-600">
+                            Add Recommendation
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Gemini Generate -->
+                <div class="card stat-card border-0 p-4"
+                     style="border:1px solid rgba(99,102,241,0.25) !important;
+                            background:rgba(99,102,241,0.03);">
+                    <h6 class="fw-600 mb-1" style="color:#4f46e5;">
+                        <i class="bi bi-stars me-2"></i>Generate with Gemini AI
+                    </h6>
+                    <small class="text-muted d-block mb-4">gemini-2.5-flash</small>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="generate_ai_recommendation">
+                        <div class="mb-3">
+                            <label class="form-label">Topic</label>
+                            <input type="text" name="ai_topic" class="form-control"
+                                   placeholder="e.g. AI-Driven Quality Control"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select name="ai_category" class="form-select" style="border-radius:10px;">
+                                <option>Strategy</option>
+                                <option>Quick Wins</option>
+                                <option>Technology</option>
+                                <option>Operations</option>
+                                <option>Data Management</option>
+                                <option>Workforce</option>
+                                <option>Quality</option>
+                                <option>Supply Chain</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Priority</label>
+                            <select name="ai_priority" class="form-select" style="border-radius:10px;">
+                                <option value="high">High</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn w-100 fw-600 py-2"
+                                style="background:linear-gradient(135deg,#6366f1,#4f46e5);
+                                       color:#fff; border-radius:10px; border:none;">
+                            <i class="bi bi-stars me-2"></i>Generate
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recommendations Table -->
+            <div class="col-lg-7">
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th><th>Category</th>
+                                    <th>Priority</th><th>Source</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in recommendations %}
+                                <tr>
+                                    <td>
+                                        <strong style="font-size:0.85rem;">{{ r.title }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            {{ r.category }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-status
+                                            {% if r.priority == 'high' %}bg-danger bg-opacity-10 text-danger
+                                            {% elif r.priority == 'medium' %}bg-warning bg-opacity-10 text-warning
+                                            {% else %}bg-success bg-opacity-10 text-success{% endif %}">
+                                            {{ r.priority|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if r.ai_generated %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary badge-status">
+                                            <i class="bi bi-stars me-1"></i>Gemini
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary badge-status">
+                                            Manual
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post"
+                                              onsubmit="return confirm('Delete?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_recommendation">
+                                            <input type="hidden" name="pk" value="{{ r.pk }}">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    style="border-radius:7px;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        No recommendations yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════ TECHNOLOGIES TAB ═══════════════════════════ -->
+    <div class="tab-pane fade" id="techs-tab">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card stat-card border-0 p-4">
+                    <h6 class="fw-600 mb-4">
+                        <i class="bi bi-plus-circle text-success me-2"></i>Add Tech Module
+                    </h6>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_tech">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" class="form-control"
+                                   required style="border-radius:10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select name="tech_type" class="form-select" style="border-radius:10px;">
+                                <option value="xai">Explainable AI</option>
+                                <option value="iot">IoT Integration</option>
+                                <option value="edge">Edge Computing</option>
+                                <option value="hrc">Human-Robot Collaboration</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="2"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Benefits</label>
+                            <textarea name="benefits" class="form-control" rows="2"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Use Cases</label>
+                            <textarea name="use_cases" class="form-control" rows="2"
+                                      required style="border-radius:10px;"></textarea>
+                        </div>
+                        <button type="submit" class="btn w-100 btn-primary-custom fw-600">
+                            Add Module
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th><th>Type</th><th>Description</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in techs %}
+                                <tr>
+                                    <td><strong>{{ t.title }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ t.get_tech_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ t.description|truncatechars:70 }}
+                                    </td>
+                                    <td>
+                                        <form method="post"
+                                              onsubmit="return confirm('Delete?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_tech">
+                                            <input type="hidden" name="pk" value="{{ t.pk }}">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    style="border-radius:7px;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        No tech modules yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
